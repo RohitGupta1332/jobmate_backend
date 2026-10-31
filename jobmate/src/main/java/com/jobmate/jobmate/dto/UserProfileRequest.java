@@ -30,7 +30,7 @@ public class UserProfileRequest {
 
     @Size(max = 100)
     private List<@NotNull @Valid EducationRequest> education;
-
+ 
     @Size(max = 100)
     private List<@NotNull @Valid ProjectRequest> projects;
 }
