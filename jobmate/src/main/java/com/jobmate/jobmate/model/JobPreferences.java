@@ -3,6 +3,8 @@ package com.jobmate.jobmate.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Entity
 @Data
 @Table(name = "job_preference")
@@ -18,7 +20,7 @@ public class JobPreferences {
             joinColumns = @JoinColumn(name = "location_id")
     )
     @Column(name = "preferred_location", nullable = false)
-    private String preferredLocations;
+    private List<String> preferredLocations;
     @Column(nullable = false)
     private String employmentType;
     private Integer noticePeriod;
