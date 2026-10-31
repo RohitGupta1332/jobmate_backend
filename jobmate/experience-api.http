@@ -1,0 +1,106 @@
+@baseUrl = http://localhost:8081
+@username = experience.tester@example.com
+@password = ChangeMe123!
+
+### Register a test user (run once; use an unused username)
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Login to obtain a JWT
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+@authToken = {{login.response.body.accessToken}}
+
+### Create experience
+# @name createExperience
+POST {{baseUrl}}/api/experiences
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "company": "Acme Technologies",
+  "designation": "Software Engineer",
+  "employmentType": "Full-time",
+  "location": "Bengaluru, India",
+  "startDate": "2023-06-01",
+  "endDate": "2025-03-31",
+  "currentlyWorking": false,
+  "highlights": [
+    "Built REST APIs for customer workflows",
+    "Improved service response times"
+  ],
+  "achievements": "Delivered several production features",
+  "technologiesUsed": [
+    "Java",
+    "Spring Boot",
+    "PostgreSQL"
+  ]
+}
+
+###
+@experienceId = {{createExperience.response.body.id}}
+
+### List all experiences for the authenticated user
+GET {{baseUrl}}/api/experiences
+Authorization: Bearer {{authToken}}
+
+### Get the created experience
+GET {{baseUrl}}/api/experiences/{{experienceId}}
+Authorization: Bearer {{authToken}}
+
+### Update the created experience
+PUT {{baseUrl}}/api/experiences/{{experienceId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "company": "Acme Technologies",
+  "designation": "Senior Software Engineer",
+  "employmentType": "Full-time",
+  "location": "Bengaluru, India",
+  "startDate": "2023-06-01",
+  "endDate": null,
+  "currentlyWorking": true,
+  "highlights": [
+    "Led development of customer-facing APIs",
+    "Mentored two engineers"
+  ],
+  "achievements": "Promoted to Senior Software Engineer",
+  "technologiesUsed": [
+    "Java",
+    "Spring Boot",
+    "PostgreSQL",
+    "Docker"
+  ]
+}
+
+### Delete the created experience (run after other requests)
+DELETE {{baseUrl}}/api/experiences/{{experienceId}}
+Authorization: Bearer {{authToken}}
+
+### Validation example: missing required company (expected HTTP 400)
+POST {{baseUrl}}/api/experiences
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "company": "",
+  "designation": "Software Engineer",
+  "employmentType": "Full-time",
+  "startDate": "2023-06-01",
+  "currentlyWorking": false
+}

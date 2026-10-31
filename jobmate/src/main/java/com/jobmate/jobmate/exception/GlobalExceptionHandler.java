@@ -28,14 +28,14 @@ public class GlobalExceptionHandler {
 
         ExceptionResponseDto response = new ExceptionResponseDto(
                 LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "Something went wrong",
-                HttpStatus.CONFLICT.getReasonPhrase(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 request.getRequestURI(),
                 fieldErrors
         );
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     //handles duplicate username
@@ -63,14 +63,29 @@ public class GlobalExceptionHandler {
         ExceptionResponseDto response = new ExceptionResponseDto(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "username not found",
-                HttpStatus.NOT_ACCEPTABLE.getReasonPhrase(),
+                exception.getMessage(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
                 request.getRequestURI(),
                 new HashMap<>()
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponseDto> handleResourceNotFound(
+            ResourceNotFoundException exception,
+            HttpServletRequest request) {
+        ExceptionResponseDto response = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                exception.getMessage(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     //handle other runtime server errors
