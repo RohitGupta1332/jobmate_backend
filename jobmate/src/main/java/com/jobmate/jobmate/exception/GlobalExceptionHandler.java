@@ -1,9 +1,10 @@
 package com.jobmate.jobmate.exception;
 
-import com.jobmate.jobmate.dto.ExceptionResponseDto;
+import com.jobmate.jobmate.dto.exception.ExceptionResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -86,6 +87,23 @@ public class GlobalExceptionHandler {
                 new HashMap<>()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ExceptionResponseDto> handleInvalidCredential(
+            BadCredentialsException exception,
+            HttpServletRequest request
+    ){
+        ExceptionResponseDto response = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Incorrect username or password",
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     //handle other runtime server errors

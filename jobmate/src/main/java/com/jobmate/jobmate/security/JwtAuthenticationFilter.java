@@ -1,8 +1,8 @@
 package com.jobmate.jobmate.security;
 
 
-import com.jobmate.jobmate.service.CustomUserDetailService;
-import com.jobmate.jobmate.service.JwtService;
+import com.jobmate.jobmate.service.auth.CustomUserDetailService;
+import com.jobmate.jobmate.service.auth.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,13 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
-
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = header.substring(7).trim();
+        if (token.isEmpty()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String email = jwtService.extractUsername(token);

@@ -1,5 +1,8 @@
 package com.jobmate.jobmate.dto;
 
+import com.jobmate.jobmate.dto.profile.ExperienceRequest;
+import com.jobmate.jobmate.dto.profile.PersonalInfoRequest;
+import com.jobmate.jobmate.dto.profile.UserProfileRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

@@ -1,6 +1,6 @@
 package com.jobmate.jobmate.repository;
 
-import com.jobmate.jobmate.model.UserProfile;
+import com.jobmate.jobmate.model.profile.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

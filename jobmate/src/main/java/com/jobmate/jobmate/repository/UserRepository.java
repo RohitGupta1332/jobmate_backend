@@ -1,6 +1,6 @@
 package com.jobmate.jobmate.repository;
 
-import com.jobmate.jobmate.model.User;
+import com.jobmate.jobmate.model.auth.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
