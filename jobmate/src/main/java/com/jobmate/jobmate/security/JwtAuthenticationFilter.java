@@ -67,9 +67,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
-            // Leave the SecurityContext unauthenticated.
-            // Protected endpoints will be rejected by Spring Security.
             SecurityContextHolder.clearContext();
+
+            System.err.println("JWT authentication failed:");
+            ex.printStackTrace();
         }
 
         filterChain.doFilter(request, response);

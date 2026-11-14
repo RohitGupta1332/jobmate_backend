@@ -112,12 +112,29 @@ public class GlobalExceptionHandler {
         ExceptionResponseDto response = new ExceptionResponseDto(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Something went wrong",
+                exception.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 request.getRequestURI(),
                 new HashMap<>()
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(RequiredFieldMissingException.class)
+    public ResponseEntity<ExceptionResponseDto> handleRequiredFieldExceptions(
+            RequiredFieldMissingException exception,
+            HttpServletRequest request
+            ){
+        ExceptionResponseDto responseDto = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "This field is required",
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
     }
 }
