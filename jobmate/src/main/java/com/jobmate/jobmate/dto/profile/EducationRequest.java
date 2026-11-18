@@ -28,7 +28,6 @@ public class EducationRequest {
     private String college;
 
     @NotNull
-    @Positive
     private String location;
 
     @NotNull

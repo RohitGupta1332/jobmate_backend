@@ -1,6 +1,7 @@
 package com.jobmate.jobmate.exception;
 
 import com.jobmate.jobmate.dto.exception.ExceptionResponseDto;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -136,5 +137,39 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseDto);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ExceptionResponseDto> handleExpiredJwtException(
+            ExpiredJwtException exception,
+            HttpServletRequest request
+    ){
+        ExceptionResponseDto responseDto = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "Token expired. Please login again",
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseDto);
+    }
+
+    @ExceptionHandler(FetchJobResponseException.class)
+    public ResponseEntity<ExceptionResponseDto> handleJobResponseException(
+            FetchJobResponseException exception,
+            HttpServletRequest request
+    ){
+        ExceptionResponseDto response = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Failed to process job matching JSON",
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

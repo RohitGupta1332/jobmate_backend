@@ -1,7 +1,11 @@
 package com.jobmate.jobmate.service.job;
 
-import com.jobmate.jobmate.dto.job.JobListDto;
-import com.jobmate.jobmate.dto.job.JobRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jobmate.jobmate.dto.job.*;
+import com.jobmate.jobmate.exception.FetchJobResponseException;
+import com.jobmate.jobmate.exception.UserNotFoundException;
+import com.jobmate.jobmate.model.profile.UserProfile;
+import com.jobmate.jobmate.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -10,24 +14,28 @@ import java.util.List;
 
 @Service
 public class JobService {
-    private final RestClient restClient;
+    private final JobMatchingAgent jobMatchingAgent;
+    private final UserProfileRepository userProfileRepository;
 
     public JobService(
-            RestClient.Builder builder,
-            @Value("${scraper.service.base-url}") String baseUrl
-    ) {
-        this.restClient = builder
-                .baseUrl(baseUrl)
-                .build();
+            JobMatchingAgent jobMatchingAgent,
+            UserProfileRepository userProfileRepository
+    ){
+        this.jobMatchingAgent = jobMatchingAgent;
+        this.userProfileRepository = userProfileRepository;
     }
 
-    public JobListDto fetchJobs(JobRequest request){
-        return restClient.post()
-                .uri("/api/scrape")
-                .body(request)
-                .retrieve()
-                .body(JobListDto.class);
+    public JobMatchingResponseDto findRelevantJobs(JobRequest jobRequest, String username){
+        UserProfile userProfile = userProfileRepository.findByUser_UsernameIgnoreCase(
+                username
+        ).orElseThrow(() -> new UserNotFoundException("Username not found"));
+        try{
+            return jobMatchingAgent.analyzeJobs(jobRequest, userProfile);
+        } catch(JsonProcessingException exception){
+            throw new FetchJobResponseException("Failed to process job matching JSON");
+        }
     }
-
-
 }
+
+
+

@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class JobListDto {
-    private List<JobResponseDto> jobs;
+public class JobMatchingResponseDto {
+    private List<JobAnalysisDto> results;
 }

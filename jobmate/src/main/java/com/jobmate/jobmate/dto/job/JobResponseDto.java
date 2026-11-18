@@ -1,14 +1,16 @@
+
 package com.jobmate.jobmate.dto.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class JobResponseDto {
 
-    // JobSpy's ID is a String, not your database Long ID
+    // Job identification
     private String id;
-
     private String site;
 
     @JsonProperty("job_url")
@@ -17,10 +19,9 @@ public class JobResponseDto {
     @JsonProperty("job_url_direct")
     private String jobUrlDirect;
 
+    // Basic job information
     private String title;
-
     private String company;
-
     private String location;
 
     @JsonProperty("date_posted")
@@ -29,6 +30,16 @@ public class JobResponseDto {
     @JsonProperty("job_type")
     private String jobType;
 
+    @JsonProperty("job_level")
+    private String jobLevel;
+
+    @JsonProperty("job_function")
+    private String jobFunction;
+
+    @JsonProperty("listing_type")
+    private String listingType;
+
+    // Salary information
     @JsonProperty("salary_source")
     private String salarySource;
 
@@ -40,30 +51,48 @@ public class JobResponseDto {
     @JsonProperty("max_amount")
     private Double maxAmount;
 
-    private String currency;
-
+    // Work arrangement
     @JsonProperty("is_remote")
     private Boolean remote;
 
-    @JsonProperty("job_level")
-    private String jobLevel;
+    @JsonProperty("work_from_home_type")
+    private String workFromHomeType;
 
-    @JsonProperty("job_function")
-    private String jobFunction;
+    // Skills and experience
+    private String skills;
 
-    @JsonProperty("listing_type")
-    private String listingType;
+    @JsonProperty("experience_range")
+    private String experienceRange;
 
-    private Object emails;
-
+    // Job description
     private String description;
 
+    // Company information
     @JsonProperty("company_url")
     private String companyUrl;
+
+    @JsonProperty("company_url_direct")
+    private String companyUrlDirect;
 
     @JsonProperty("company_logo")
     private String companyLogo;
 
     @JsonProperty("company_industry")
     private String companyIndustry;
+
+    @JsonProperty("company_addresses")
+    private String companyAddresses;
+
+    @JsonProperty("company_num_employees")
+    private String companyNumEmployees;
+
+    @JsonProperty("company_rating")
+    private Double companyRating;
+
+    @JsonProperty("company_reviews_count")
+    private Integer companyReviewsCount;
+
+    // Vacancy information
+    @JsonProperty("vacancy_count")
+    private Integer vacancyCount;
 }
