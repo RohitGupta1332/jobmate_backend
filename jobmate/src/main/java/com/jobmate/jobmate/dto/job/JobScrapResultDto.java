@@ -7,8 +7,6 @@ import java.util.List;
 @Data
 public class JobScrapResultDto {
 
-    private int totalJobs;
-
     private List<JobResponseDto> jobs;
 
 

@@ -8,13 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/scrape")
+@RequestMapping("/api/jobs")
 public class JobsController {
 
     private final JobService jobService;
@@ -22,14 +19,22 @@ public class JobsController {
     public JobsController(JobService jobService){
         this.jobService = jobService;
     }
-    @GetMapping
-    public ResponseEntity<JobMatchingResponseDto> fetchJobs(
+    @PostMapping
+    public ResponseEntity<JobMatchingResponseDto> scrapeFreshJobs(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody JobRequest jobRequest
     ){
         String username = userDetails.getUsername();
         JobMatchingResponseDto jobResult = jobService.findRelevantJobs(jobRequest, username);
+        jobService.saveJobs(username, jobResult);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(jobResult);
 
+    }
+
+    @GetMapping
+    public ResponseEntity<JobMatchingResponseDto> fetchJobs(@AuthenticationPrincipal UserDetails userDetails){
+        String username = userDetails.getUsername();
+        JobMatchingResponseDto jobs = jobService.fetchJobs(username);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(jobs);
     }
 }

@@ -1,112 +1,183 @@
+
 package com.jobmate.jobmate.service.job;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.jobmate.jobmate.dto.job.JobMatchingResponseDto;
-import com.jobmate.jobmate.dto.job.JobRequest;
-import com.jobmate.jobmate.model.profile.UserProfile;
+import com.jobmate.jobmate.dto.job.*;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.List;
 
 @Service
 public class JobMatchingAgent {
 
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
-    private final JobAgentTools jobAgentTools;
 
     public JobMatchingAgent(
             ChatClient chatClient,
-            ObjectMapper objectMapper,
-            JobAgentTools jobAgentTools
+            ObjectMapper objectMapper
     ) {
         this.chatClient = chatClient;
         this.objectMapper = objectMapper;
-        this.jobAgentTools = jobAgentTools;
     }
+
 
     public JobMatchingResponseDto analyzeJobs(
-        JobRequest jobRequest,
-        UserProfile userProfile
-    ) throws JsonProcessingException {
+            List<JobResponseDto> jobs,
+            UserProfileForAgentDto profile
+    ) {
 
-        String requestJson = objectMapper.writeValueAsString(jobRequest);
-        String profileJson = objectMapper.writeValueAsString(userProfile);
+        if (jobs == null || jobs.isEmpty()) {
+            return new JobMatchingResponseDto();
+        }
 
-        String response = chatClient.prompt()
-                .system("""
-                    You are an AI job matching agent.
-                
-                    Your goal is to find at least 10 relevant jobs for the candidate.
-                
-                    Follow this workflow:
-                
-                    1. Call ScrapJobs to fetch job listings using the
-                       provided job search criteria.
-                
-                    2. Call removeDuplicates to remove duplicate jobs.
-                
-                    3. Call filterByExperience to remove jobs that require
-                       more experience than the candidate's maximum experience.
-                
-                    4. Analyze the remaining jobs against the candidate's profile.
-                
-                    5. If fewer than 10 relevant jobs are found, call ScrapJobs
-                       again to fetch additional jobs, if more results are available.
-                
-                    6. Process newly fetched jobs through deduplication,
-                       experience filtering, and matching.
-                
-                    7. Continue until at least 10 relevant jobs are found
-                       or no more jobs can be fetched.
-                
-                    Rules:
-                
-                    - Always use the available tools.
-                    - Use the output of each tool in subsequent steps.
-                    - Do not invent candidate skills or experience.
-                    - Do not assume missing information.
-                    - Do not mark candidates eligible if mandatory
-                      requirements are clearly not satisfied.
-                    - Give each job a match score from 0 to 100.
-                    - Do not return duplicate jobs.
-                    - Return only relevant jobs.
-                
-                    Return a JSON object with a "results" array.
-                
-                    Each result must contain:
-                    jobId, company, title, matchScore, summary, pros, cons.
-                
-                    Use strings for jobId, company, title and summary.
-                    Use an integer for matchScore.
-                    Use arrays of strings for pros and cons.
-                
-                    Return valid JSON only.
-                """)
-                .user(user -> user.text("""
-                        Find relevant jobs for this candidate.
+        try {
+            String jobsJson = objectMapper.writeValueAsString(jobs);
+            String profileJson = objectMapper.writeValueAsString(profile);
 
-                        Candidate profile:
-                        {profile}
+            ChatResponse chatResponse = callLlmWithRetry(
+                    jobsJson,
+                    profileJson
+            );
 
-                        Maximum required experience: 2 years.
-                        """)
-                        .param("profile", profileJson)
-                        .param("request", requestJson))
-                .tools(jobAgentTools)
-                .call()
-                .content();
+            // Token consumption
+            Usage usage = chatResponse.getMetadata().getUsage();
 
-        System.out.println("Gemini response:");
-        System.out.println(response);
+            System.out.println("---------- TOKEN USAGE ----------");
+            System.out.println("Prompt tokens: " + usage.getPromptTokens());
+            System.out.println("Completion tokens: " + usage.getCompletionTokens());
+            System.out.println("Total tokens: " + usage.getTotalTokens());
+            System.out.println("---------------------------------");
 
-        String json = extractJson(response);
+            String response = chatResponse.getResult()
+                    .getOutput()
+                    .getText();
 
-        return objectMapper.readValue(
-                json,
-                JobMatchingResponseDto.class
-        );
+            if (response == null || response.isBlank()) {
+                return new JobMatchingResponseDto();
+            }
+
+            return objectMapper.readValue(
+                    extractJson(response),
+                    JobMatchingResponseDto.class
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Failed to analyze jobs using LLM", e
+            );
+        }
     }
+
+
+    private ChatResponse callLlmWithRetry(
+            String jobsJson,
+            String profileJson
+    ) {
+
+        int maxRetries = 3;
+        long waitTime = 12000; // 12 seconds
+
+        for (int attempt = 1; attempt <= maxRetries + 1; attempt++) {
+
+            try {
+
+                System.out.println(
+                        "LLM request attempt: " + attempt
+                );
+
+                return chatClient.prompt()
+
+                        .system("""
+                            You are an expert technical recruiter.
+
+                            Your task is to identify jobs relevant to the
+                            candidate based on their profile.
+
+                            Evaluate each job based on:
+                            1. Technical skills match.
+                            2. Relevant work experience.
+                            3. Required qualifications.
+                            4. Project experience.
+                            5. Job responsibilities.
+
+                            Rules:
+                            - Only select jobs from the provided job list.
+                            - Never invent job IDs.
+                            - Do not modify job details.
+                            - Do not select jobs that clearly exceed
+                              the candidate's qualifications.
+                            - Return only the IDs of relevant jobs.
+                            - If no jobs are relevant, return an empty list.
+
+                            Return valid JSON in this format:
+                            {
+                              "results": [
+                                {
+                                  "jobId": "job-101",
+                                  "title": "Java Developer",
+                                  "company": "ABC",
+                                  "location": "Bangalore",
+                                  "url": "https://example.com",
+                                  "description": "Backend development"
+                                }
+                              ]
+                            }
+                            """)
+
+                        .user(user -> user.text("""
+                            Candidate Profile:
+                            {profile}
+
+                            Available Jobs:
+                            {jobs}
+
+                            Identify the relevant jobs for this candidate.
+                            """)
+                                .param("profile", profileJson)
+                                .param("jobs", jobsJson))
+
+                        .call()
+                        .chatResponse();
+
+            } catch (com.openai.errors.RateLimitException e) {
+
+                if (attempt > maxRetries) {
+                    System.out.println(
+                            "Maximum retries reached. Stopping LLM request."
+                    );
+
+                    throw e;
+                }
+
+                System.out.println(
+                        "Rate limit reached. Waiting " +
+                                (waitTime / 1000) + " seconds before retry."
+                );
+
+                try {
+                    Thread.sleep(waitTime);
+                } catch (InterruptedException interruptedException) {
+
+                    Thread.currentThread().interrupt();
+
+                    throw new RuntimeException(
+                            "LLM retry interrupted",
+                            interruptedException
+                    );
+                }
+
+                // Exponential backoff
+                waitTime = Math.min(waitTime * 2, 60000);
+            }
+        }
+
+        throw new RuntimeException("LLM request failed");
+    }
+
 
     private String extractJson(String response) {
 

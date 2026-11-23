@@ -4,6 +4,7 @@ package com.jobmate.jobmate.service.job;
 import com.jobmate.jobmate.dto.job.JobResponseDto;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

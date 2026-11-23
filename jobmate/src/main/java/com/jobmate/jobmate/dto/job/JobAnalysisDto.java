@@ -1,5 +1,6 @@
 package com.jobmate.jobmate.dto.job;
 
+import com.jobmate.jobmate.model.job.Status;
 import lombok.Data;
 
 import java.util.List;
@@ -8,10 +9,10 @@ import java.util.List;
 public class JobAnalysisDto {
 
     private String jobId;
-    private String company;
     private String title;
-    private Integer matchScore;
-    private String summary;
-    private List<String> pros;
-    private List<String> cons;
+    private String company;
+    private String location;
+    private String url;
+    private Status applicationStatus;
+    private String description;
 }
