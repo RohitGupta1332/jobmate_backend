@@ -172,4 +172,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(JobNotFoundException.class)
+    public ResponseEntity<ExceptionResponseDto> handleMissingJob(
+            JobNotFoundException exception,
+            HttpServletRequest request
+    ){
+        ExceptionResponseDto response = new ExceptionResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Job not found",
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                request.getRequestURI(),
+                new HashMap<>()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }

@@ -15,17 +15,23 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public Map uploadPdf(MultipartFile file) {
+        try {
+            return uploadPdf(file.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("PDF upload failed", e);
+        }
+    }
 
+    public Map uploadPdf(byte[] pdf) {
         try {
             return cloudinary.uploader().upload(
-                    file.getBytes(),
+                    pdf,
                     ObjectUtils.asMap(
                             "resource_type", "image",
                             "folder", "jobmate/resumes",
                             "format", "pdf"
                     )
             );
-
         } catch (IOException e) {
             throw new RuntimeException("PDF upload failed", e);
         }

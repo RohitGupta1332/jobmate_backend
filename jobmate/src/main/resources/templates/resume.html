@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page {
+            size: A4;
+            margin: 35px 42px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #222;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+            margin-top: 17px;
+            margin-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        p {
+            margin: 3px 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 10px;
+        }
+
+        .item {
+            margin-bottom: 9px;
+            page-break-inside: avoid;
+        }
+
+        .date {
+            color: #555;
+            font-size: 9px;
+        }
+
+        ul {
+            padding-left: 16px;
+            margin-top: 4px;
+        }
+
+        li {
+            margin-bottom: 3px;
+        }
+
+        .skills {
+            line-height: 1.7;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1 th:text="${resume.fullName}"></h1>
+</div>
+
+<div class="section"
+     th:if="${resume.professionalSummary != null}">
+    <h2>Professional Summary</h2>
+    <p th:text="${resume.professionalSummary}"></p>
+</div>
+
+<div class="section" th:if="${!resume.skills.isEmpty()}">
+    <h2>Technical Skills</h2>
+    <p class="skills"
+       th:text="${#strings.listJoin(resume.skills, ', ')}"></p>
+</div>
+
+<div class="section" th:if="${!resume.experiences.isEmpty()}">
+    <h2>Professional Experience</h2>
+
+    <div class="item"
+         th:each="exp : ${resume.experiences}">
+
+        <h3>
+            <span th:text="${exp.designation}"></span>
+            -
+            <span th:text="${exp.company}"></span>
+        </h3>
+
+        <p class="date">
+            <span th:text="${exp.startDate}"></span>
+            -
+            <span th:text="${exp.currentlyWorking ? 'Present' : exp.endDate}"></span>
+            |
+            <span th:text="${exp.location}"></span>
+        </p>
+
+        <ul th:if="${!exp.highlights.isEmpty()}">
+            <li th:each="highlight : ${exp.highlights}"
+                th:text="${highlight}">
+            </li>
+        </ul>
+
+        <p>
+            <strong>Technologies:</strong>
+            <span th:text="${#strings.listJoin(exp.technologiesUsed, ', ')}"></span>
+        </p>
+    </div>
+</div>
+
+<div class="section" th:if="${!resume.projects.isEmpty()}">
+    <h2>Projects</h2>
+
+    <div class="item" th:each="project : ${resume.projects}">
+        <h3 th:text="${project.name}"></h3>
+
+        <p th:text="${project.description}"></p>
+
+        <p>
+            <strong>Technologies:</strong>
+            <span th:text="${#strings.listJoin(project.technologiesUsed, ', ')}"></span>
+        </p>
+
+        <ul th:if="${!project.contributions.isEmpty()}">
+            <li th:each="contribution : ${project.contributions}"
+                th:text="${contribution}">
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="section" th:if="${!resume.education.isEmpty()}">
+    <h2>Education</h2>
+
+    <div class="item" th:each="edu : ${resume.education}">
+        <h3 th:text="${edu.degree + ' - ' + edu.specialization}"></h3>
+
+        <p th:text="${edu.college}"></p>
+
+        <p class="date">
+            <span th:text="${edu.startYear}"></span>
+            -
+            <span th:text="${edu.endYear}"></span>
+            |
+            <span th:text="${edu.location}"></span>
+            |
+            CGPA:
+            <span th:text="${edu.cgpa}"></span>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
